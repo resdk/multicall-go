@@ -9,7 +9,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/resdk/multicall-go/contract"
 	"math/big"
 	"strings"
 )
@@ -32,12 +31,12 @@ type Response struct {
 	ReturnData []byte `json:"returnData"`
 }
 
-func (call *Call) GetMultiCall() *contract.Multicall2Call {
-	return &contract.Multicall2Call{Target: call.Target, CallData: call.CallData}
+func (call *Call) GetMultiCall() *Multicall2Call {
+	return &Multicall2Call{Target: call.Target, CallData: call.CallData}
 }
 
 func GetErc20Abi() (*abi.ABI, error) {
-	erc20Abi, err := abi.JSON(strings.NewReader(contract.Erc20ABI))
+	erc20Abi, err := abi.JSON(strings.NewReader(Erc20ABI))
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +63,7 @@ func randomSigner() *bind.TransactOpts {
 
 func New(client *ethclient.Client, contractAddress *common.Address, mcAbi *abi.ABI, signer *bind.TransactOpts) *Caller {
 	if mcAbi == nil {
-		tmpAbi, err := abi.JSON(strings.NewReader(contract.MultiCall2ABI))
+		tmpAbi, err := abi.JSON(strings.NewReader(MultiCall2ABI))
 		if err != nil {
 			panic(err)
 		}
@@ -94,7 +93,7 @@ func NewPolygon(client *ethclient.Client) *Caller {
 	return New(client, &contractAddress, nil, nil)
 }
 
-func execute(caller *Caller, todos []contract.Multicall2Call) []*Response {
+func execute(caller *Caller, todos []Multicall2Call) []*Response {
 	responses := make([]*Response, len(todos))
 
 	callData, err := caller.Abi.Pack("tryAggregate", false, todos)
@@ -130,13 +129,13 @@ func execute(caller *Caller, todos []contract.Multicall2Call) []*Response {
 func (caller *Caller) Execute(calls []*Call, batchSize int) map[string]*Response {
 	responses := make([]*Response, 0, len(calls))
 
-	todos := make([]contract.Multicall2Call, 0, batchSize)
+	todos := make([]Multicall2Call, 0, batchSize)
 
 	for _, call := range calls {
 		todos = append(todos, *call.GetMultiCall())
 		if len(todos) >= batchSize {
 			responses = append(responses, execute(caller, todos)...)
-			todos = make([]contract.Multicall2Call, 0, batchSize)
+			todos = make([]Multicall2Call, 0, batchSize)
 		}
 	}
 

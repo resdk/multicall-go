@@ -1,7 +1,7 @@
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
-package contract
+package multicall
 
 import (
 	"math/big"
@@ -54,7 +54,7 @@ type Erc20Filterer struct {
 // Erc20Session is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
 type Erc20Session struct {
-	Contract     *Erc20           // Generic contract binding to set the session for
+	Contract     *Erc20            // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts     // Call options to use throughout this session
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
@@ -62,14 +62,14 @@ type Erc20Session struct {
 // Erc20CallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
 type Erc20CallerSession struct {
-	Contract *Erc20Caller // Generic contract caller binding to set the session for
+	Contract *Erc20Caller  // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts // Call options to use throughout this session
 }
 
 // Erc20TransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
 type Erc20TransactorSession struct {
-	Contract     *Erc20Transactor // Generic contract transactor binding to set the session for
+	Contract     *Erc20Transactor  // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
