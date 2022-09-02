@@ -18,6 +18,7 @@ type Caller struct {
 	ContractAddress *common.Address
 	Abi             *abi.ABI
 	Signer          *bind.TransactOpts
+	BlockNumber     *big.Int
 }
 
 type Call struct {
@@ -61,7 +62,7 @@ func randomSigner() *bind.TransactOpts {
 	return signer
 }
 
-func New(client *ethclient.Client, contractAddress *common.Address, mcAbi *abi.ABI, signer *bind.TransactOpts) *Caller {
+func New(client *ethclient.Client, contractAddress *common.Address, mcAbi *abi.ABI, signer *bind.TransactOpts, blockNumber *big.Int) *Caller {
 	if mcAbi == nil {
 		tmpAbi, err := abi.JSON(strings.NewReader(MultiCall2ABI))
 		if err != nil {
@@ -74,23 +75,24 @@ func New(client *ethclient.Client, contractAddress *common.Address, mcAbi *abi.A
 	}
 
 	return &Caller{
-		Signer:          signer,
 		Client:          client,
-		Abi:             mcAbi,
 		ContractAddress: contractAddress,
+		Abi:             mcAbi,
+		Signer:          signer,
+		BlockNumber:     blockNumber,
 	}
 }
 
 // NewEth https://github.com/makerdao/multicall
 func NewEth(client *ethclient.Client) *Caller {
 	contractAddress := common.HexToAddress("0x5ba1e12693dc8f9c48aad8770482f4739beed696")
-	return New(client, &contractAddress, nil, nil)
+	return New(client, &contractAddress, nil, nil, nil)
 }
 
 // NewPolygon https://github.com/makerdao/multicall/pull/24
 func NewPolygon(client *ethclient.Client) *Caller {
 	contractAddress := common.HexToAddress("0x275617327c958bD06b5D6b871E7f491D76113dd8")
-	return New(client, &contractAddress, nil, nil)
+	return New(client, &contractAddress, nil, nil, nil)
 }
 
 func execute(caller *Caller, todos []Multicall2Call) []*Response {
@@ -104,7 +106,7 @@ func execute(caller *Caller, todos []Multicall2Call) []*Response {
 	resp, err := caller.Client.CallContract(
 		context.Background(),
 		ethereum.CallMsg{To: caller.ContractAddress, Data: callData},
-		nil,
+		caller.BlockNumber,
 	)
 	if err != nil {
 		panic(err)
