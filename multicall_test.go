@@ -22,20 +22,20 @@ func TestCaller_Polygon_Execute(t *testing.T) {
 
 	calls := []*Call{
 		&Call{
-			Id:       "WBTC",
+			UserData: "WBTC",
 			Target:   common.HexToAddress("0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6"),
 			CallData: callData,
 		},
 		&Call{
-			Id:       "USDC",
+			UserData: "USDC",
 			Target:   common.HexToAddress("0x2791bca1f2de4661ed88a30c99a7a9449aa84174"),
 			CallData: callData,
 		},
 	}
 
 	results := caller.Execute(calls, 10)
-	for k, v := range results {
+	for _, v := range results {
 		out, _ := erc20Abi.Unpack("symbol", v.ReturnData)
-		assert.Equal(t, k, out[0])
+		assert.Equal(t, v.UserData.(string), out[0])
 	}
 }

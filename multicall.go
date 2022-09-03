@@ -22,14 +22,15 @@ type Caller struct {
 }
 
 type Call struct {
-	Id       string         `json:"id"`
 	Target   common.Address `json:"target"`
-	CallData []byte         `json:"call_data"`
+	CallData []byte         `json:"callData"`
+	UserData any            `json:"userData"`
 }
 
 type Response struct {
 	Success    bool   `json:"success"`
 	ReturnData []byte `json:"returnData"`
+	UserData   any    `json:"userData"`
 }
 
 func (call *Call) GetMultiCall() *Multicall2Call {
@@ -128,7 +129,7 @@ func execute(caller *Caller, todos []Multicall2Call) []*Response {
 	return responses
 }
 
-func (caller *Caller) Execute(calls []*Call, batchSize int) map[string]*Response {
+func (caller *Caller) Execute(calls []*Call, batchSize int) []*Response {
 	responses := make([]*Response, 0, len(calls))
 
 	todos := make([]Multicall2Call, 0, batchSize)
@@ -146,10 +147,9 @@ func (caller *Caller) Execute(calls []*Call, batchSize int) map[string]*Response
 		responses = append(responses, execute(caller, todos)...)
 	}
 
-	results := make(map[string]*Response, len(calls))
-	for i, response := range responses {
-		results[calls[i].Id] = response
+	for i, j := range responses {
+		j.UserData = calls[i].UserData
 	}
 
-	return results
+	return responses
 }
