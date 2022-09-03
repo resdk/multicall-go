@@ -33,7 +33,7 @@ func TestCaller_Polygon_Execute(t *testing.T) {
 		},
 	}
 
-	results := caller.Execute(calls, 10)
+	results, _ := caller.Execute(calls, 10)
 	for _, v := range results {
 		out, _ := erc20Abi.Unpack("symbol", v.ReturnData)
 		assert.Equal(t, v.UserData.(string), out[0])

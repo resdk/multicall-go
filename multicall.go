@@ -96,12 +96,12 @@ func NewPolygon(client *ethclient.Client) *Caller {
 	return New(client, &contractAddress, nil, nil, nil)
 }
 
-func execute(caller *Caller, todos []Multicall2Call) []*Response {
+func execute(caller *Caller, todos []Multicall2Call) ([]*Response, error) {
 	responses := make([]*Response, len(todos))
 
 	callData, err := caller.Abi.Pack("tryAggregate", false, todos)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	resp, err := caller.Client.CallContract(
@@ -110,7 +110,7 @@ func execute(caller *Caller, todos []Multicall2Call) []*Response {
 		caller.BlockNumber,
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Unpack results
@@ -118,38 +118,37 @@ func execute(caller *Caller, todos []Multicall2Call) []*Response {
 
 	a, err := json.Marshal(unpackedResp[0])
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	err = json.Unmarshal(a, &responses)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return responses
+	return responses, nil
 }
 
-func (caller *Caller) Execute(calls []*Call, batchSize int) []*Response {
+func (caller *Caller) Execute(calls []*Call, batchSize int) ([]*Response, error) {
 	responses := make([]*Response, 0, len(calls))
 
 	todos := make([]Multicall2Call, 0, batchSize)
 
-	for _, call := range calls {
+	for i, call := range calls {
 		todos = append(todos, *call.GetMultiCall())
-		if len(todos) >= batchSize {
-			responses = append(responses, execute(caller, todos)...)
+		if len(todos) >= batchSize || i == len(calls)-1 {
+			rps, err := execute(caller, todos)
+			if err != nil {
+				return nil, err
+			}
+			responses = append(responses, rps...)
 			todos = make([]Multicall2Call, 0, batchSize)
 		}
-	}
-
-	// deal with left todos
-	if len(todos) > 0 {
-		responses = append(responses, execute(caller, todos)...)
 	}
 
 	for i, j := range responses {
 		j.UserData = calls[i].UserData
 	}
 
-	return responses
+	return responses, nil
 }
