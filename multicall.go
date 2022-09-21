@@ -3,6 +3,7 @@ package multicall
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -12,6 +13,10 @@ import (
 	"math/big"
 	"strings"
 )
+
+const EthChainId = 1
+const BscChainId = 56
+const PolygonChainId = 137
 
 type Caller struct {
 	Client          *ethclient.Client
@@ -63,11 +68,11 @@ func randomSigner() *bind.TransactOpts {
 	return signer
 }
 
-func New(client *ethclient.Client, contractAddress *common.Address, mcAbi *abi.ABI, signer *bind.TransactOpts, blockNumber *big.Int) *Caller {
+func NewCaller(client *ethclient.Client, contractAddress *common.Address, mcAbi *abi.ABI, signer *bind.TransactOpts, blockNumber *big.Int) (*Caller, error) {
 	if mcAbi == nil {
 		tmpAbi, err := abi.JSON(strings.NewReader(MultiCall2ABI))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		mcAbi = &tmpAbi
 	}
@@ -81,19 +86,27 @@ func New(client *ethclient.Client, contractAddress *common.Address, mcAbi *abi.A
 		Abi:             mcAbi,
 		Signer:          signer,
 		BlockNumber:     blockNumber,
+	}, nil
+}
+
+func New(client *ethclient.Client) (*Caller, error) {
+	chainId, err := client.ChainID(context.Background())
+	if err != nil {
+		return nil, err
 	}
-}
-
-// NewEth https://github.com/makerdao/multicall
-func NewEth(client *ethclient.Client) *Caller {
-	contractAddress := common.HexToAddress("0x5ba1e12693dc8f9c48aad8770482f4739beed696")
-	return New(client, &contractAddress, nil, nil, nil)
-}
-
-// NewPolygon https://github.com/makerdao/multicall/pull/24
-func NewPolygon(client *ethclient.Client) *Caller {
-	contractAddress := common.HexToAddress("0x275617327c958bD06b5D6b871E7f491D76113dd8")
-	return New(client, &contractAddress, nil, nil, nil)
+	switch chainId.Int64() {
+	case EthChainId:
+		contractAddress := common.HexToAddress("0x5ba1e12693dc8f9c48aad8770482f4739beed696")
+		return NewCaller(client, &contractAddress, nil, nil, nil)
+	case BscChainId:
+		contractAddress := common.HexToAddress("0x41263cba59eb80dc200f3e2544eda4ed6a90e76c")
+		return NewCaller(client, &contractAddress, nil, nil, nil)
+	case PolygonChainId:
+		contractAddress := common.HexToAddress("0x275617327c958bD06b5D6b871E7f491D76113dd8")
+		return NewCaller(client, &contractAddress, nil, nil, nil)
+	default:
+		return nil, errors.New("unsupported chain id:" + chainId.String())
+	}
 }
 
 func execute(caller *Caller, todos []Multicall2Call) ([]*Response, error) {

@@ -13,7 +13,7 @@ if err != nil {
 	log.Fatal(err)
 }
 
-caller := NewPolygon(client)
+caller := New(client)
 
 erc20Abi, _ := GetErc20Abi()
 

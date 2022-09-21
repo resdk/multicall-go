@@ -14,7 +14,7 @@ func TestCaller_Polygon_Execute(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	caller := NewPolygon(client)
+	caller, _ := New(client)
 
 	erc20Abi, _ := GetErc20Abi()
 
