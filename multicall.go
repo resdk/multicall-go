@@ -109,8 +109,8 @@ func New(client *ethclient.Client) (*Caller, error) {
 	}
 }
 
-func execute(caller *Caller, todos []Multicall2Call) ([]*Response, error) {
-	responses := make([]*Response, len(todos))
+func execute(caller *Caller, todos []Multicall2Call) ([]Response, error) {
+	responses := make([]Response, 0, len(todos))
 
 	callData, err := caller.Abi.Pack("tryAggregate", false, todos)
 	if err != nil {
@@ -142,8 +142,8 @@ func execute(caller *Caller, todos []Multicall2Call) ([]*Response, error) {
 	return responses, nil
 }
 
-func (caller *Caller) Execute(calls []*Call, batchSize int) ([]*Response, error) {
-	responses := make([]*Response, 0, len(calls))
+func (caller *Caller) Execute(calls []Call, batchSize int) ([]Response, error) {
+	responses := make([]Response, 0, len(calls))
 
 	todos := make([]Multicall2Call, 0, batchSize)
 
@@ -159,8 +159,8 @@ func (caller *Caller) Execute(calls []*Call, batchSize int) ([]*Response, error)
 		}
 	}
 
-	for i, j := range responses {
-		j.UserData = calls[i].UserData
+	for i := range responses {
+		responses[i].UserData = calls[i].UserData
 	}
 
 	return responses, nil
