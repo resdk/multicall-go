@@ -20,7 +20,7 @@ func TestCaller_Polygon_Execute(t *testing.T) {
 
 	callData, _ := erc20Abi.Pack("symbol")
 
-	calls := []Call{
+	calls := []*Call{
 		{
 			UserData: "WBTC",
 			Target:   common.HexToAddress("0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6"),
